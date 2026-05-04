@@ -1,0 +1,7 @@
+.vs/
+*.user
+*.suo
+*.slnLaunch.user
+bin/
+obj/
+node_modules/
