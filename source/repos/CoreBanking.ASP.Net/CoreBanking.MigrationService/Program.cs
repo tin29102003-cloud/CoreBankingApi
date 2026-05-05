@@ -1,4 +1,5 @@
 using CoreBanking.MigrationService;
+using CoreBanking.ServiceDefaults;
 
 var builder = Host.CreateApplicationBuilder(args);
 
