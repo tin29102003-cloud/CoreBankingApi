@@ -1,6 +1,14 @@
 @CoreBanking.Api_HostAddress = http://localhost:5270
 
-GET {{CoreBanking.Api_HostAddress}}/weatherforecast/
+GET {{CoreBanking.Api_HostAddress}}/api/v1/corebanking/customer
 Accept: application/json
 
+###
+POST {{CoreBanking.Api_HostAddress}}/api/v1/corebanking/customer
+Content-Type: application/json
+{
+  "Id": "00000000-0000-0000-0000-0000000000000",
+  "name": "",
+  "address": "my address"
+}
 ###

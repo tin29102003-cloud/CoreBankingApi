@@ -11,7 +11,7 @@ namespace CoreBanking.Infrastructure.Data
         public CoreBankingDbContext CreateDbContext(string[] args)
         {
             var  optionsBuilder = new DbContextOptionsBuilder<CoreBankingDbContext>();
-            optionsBuilder.UseNpgsql("Host=localhost;Database=corebanking;Trusted_Connection=True;MultipleActiveResultSets=true");//sử dụng PostgreSQL làm provider, bạn có thể thay đổi chuỗi kết nối này để phù hợp với cơ sở dữ liệu của bạn
+            optionsBuilder.UseNpgsql("Host=localhost;Database=corebanking;Username=postgres;Password=postgres"); ;
             return new CoreBankingDbContext(optionsBuilder.Options);
         }
     }

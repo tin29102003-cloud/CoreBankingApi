@@ -9,12 +9,15 @@ var postgres = builder.AddPostgres("Postgres")//dòng nay sẽ thêm một conta
         {
             rbuilder.WithImageTag("latest");//ép buocj pgAdmin sử dụng phiên bản mới nhất của hình ảnh pgAdmin từ Docker Hub.
         });
-var coreBankingDb = postgres.AddDatabase("corebanking-db","corebaking");
+var coreBankingDb = postgres.AddDatabase("corebanking-db","corebanking");
 
-var miragationService = builder.AddProject<Projects.CoreBanking_MigrationService>("corebanking-migrationservice");//thằng này có nhiệm vụ khởi tạo db cho  chúng ta và có thể cập nhạt lại db nếu có gì mới 
+var miragationService = builder.AddProject<Projects.CoreBanking_MigrationService>("corebanking-migrationservice")//thằng này có nhiệm vụ khởi tạo db cho  chúng ta và có thể cập nhạt lại db nếu có gì mới 
+    .WithReference(coreBankingDb)
+    .WaitFor(coreBankingDb)
+    ;
 
 builder.AddProject<Projects.CoreBanking_Api>("corebanking-api")//dòng  này sẽ thêm dự án CoreBanking.Api vào ứng dụng phân tán, cho phép nó được quản lý và chạy như một phần của hệ thống tổng thể.
     .WithReference(coreBankingDb)//tham chiếu đến cơ sở dữ liệu coreBankingDb, cho phép dự án CoreBanking.Api có thể truy cập và tương tác với cơ sở dữ liệu PostgreSQL đã được cấu hình trước đó.
     .WaitFor(postgres)//dòng này chỉ định rằng dự án CoreBanking.Api sẽ chờ cho đến khi container PostgreSQL được khởi động và sẵn sàng trước khi nó bắt đầu chạy, đảm bảo rằng cơ sở dữ liệu đã sẵn sàng để phục vụ các yêu cầu từ dự án CoreBanking.Api.
-    .WaitForCompletion(miragationService);//chờ thằng migrationService hoàn thành trước khi dự án CoreBanking.Api bắt đầu chạy, đảm bảo rằng quá trình khởi tạo và cập nhật cơ sở dữ liệu đã hoàn tất trước khi dự án CoreBanking.Api bắt đầu phục vụ các yêu cầu từ người dùng hoặc các dịch vụ khác.
+    .WaitForCompletion(miragationService);//chờ thằng migrationServi1ce hoàn thành trước khi dự án CoreBanking.Api bắt đầu chạy, đảm bảo rằng quá trình khởi tạo và cập nhật cơ sở dữ liệu đã hoàn tất trước khi dự án CoreBanking.Api bắt đầu phục vụ các yêu cầu từ người dùng hoặc các dịch vụ khác.
 builder.Build().Run();

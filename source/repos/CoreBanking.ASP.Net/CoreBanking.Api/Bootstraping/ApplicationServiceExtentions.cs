@@ -1,5 +1,7 @@
 ﻿using Asp.Versioning;
+using CoreBanking.Infrastructure.Data;
 using CoreBanking.ServiceDefaults;
+using Microsoft.EntityFrameworkCore;
 
 namespace CoreBanking.Api.Bootstraping
 {
@@ -22,6 +24,15 @@ namespace CoreBanking.Api.Bootstraping
                         );
 
                 });
+
+            //dăng ký dbcontext với PostgreSQL, và chỉ định assembly chứa migration
+            builder.AddNpgsqlDbContext<CoreBankingDbContext>("corebanking-db", configureDbContextOptions: dbContextOptionsBuilder =>
+            {
+                dbContextOptionsBuilder.UseNpgsql(npgsql => npgsql.MigrationsAssembly(typeof(CoreBankingDbContext).Assembly.GetName().Name));
+                //dòng này cấu hình DbContext để sử dụng PostgreSQL làm cơ sở dữ liệu, và chỉ định rằng các migration sẽ được tìm thấy trong assembly chứa lớp CoreBankingDbContext. Điều này giúp đảm bảo rằng khi chạy migration, Entity Framework sẽ biết nơi để tìm các lớp migration đã được tạo ra để cập nhật cơ sở dữ liệu một cách chính xác.
+
+
+            });
             return builder;
         }
     }
