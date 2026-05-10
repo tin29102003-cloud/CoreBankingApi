@@ -1,0 +1,3 @@
+﻿
+
+[assembly: InternalsVisibleTo("CoreBanking.UnitTest")]

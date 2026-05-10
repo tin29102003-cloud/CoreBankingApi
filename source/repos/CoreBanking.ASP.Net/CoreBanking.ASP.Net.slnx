@@ -2,6 +2,7 @@
   <Project Path="CoreBanking.Api/CoreBanking.Api.csproj" />
   <Project Path="CoreBanking.Infrastructure/CoreBanking.Infrastructure.csproj" Id="1c85e44b-b0c2-49b8-ab29-9f686c9f8f5c" />
   <Project Path="CoreBanking.MigrationService/CoreBanking.MigrationService.csproj" />
+  <Project Path="CoreBanking.UnitTest/CoreBanking.UnitTest.csproj" Id="aa1c6431-0b3d-4075-8243-249af0552bb8" />
   <Project Path="CoreBanking/CoreBanking.AppHost/CoreBanking.AppHost.csproj" />
   <Project Path="CoreBanking/CoreBanking.ServiceDefaults/CoreBanking.ServiceDefaults.csproj" />
 </Solution>

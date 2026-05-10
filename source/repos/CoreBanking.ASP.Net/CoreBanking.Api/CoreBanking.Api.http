@@ -7,8 +7,39 @@ Accept: application/json
 POST {{CoreBanking.Api_HostAddress}}/api/v1/corebanking/customer
 Content-Type: application/json
 {
-  "Id": "00000000-0000-0000-0000-0000000000000",
-  "name": "",
+  "Id": "00000000-0000-0000-0000-000000000000",
+  "name": "tin dep  trai",
   "address": "my address"
+}
+###
+
+GET {{CoreBanking.Api_HostAddress}}/api/v1/corebanking/accounts
+Accept: application/json
+
+###
+POST {{CoreBanking.Api_HostAddress}}/api/v1/corebanking/accounts
+Content-Type: application/json
+{
+  "CustomerId": "b1f8e949-b353-4ec1-b8b5-91f93d9c7157"
+}
+###
+PUT {{CoreBanking.Api_HostAddress}}/api/v1/corebanking/accounts/019e112f-250f-7749-ba43-8c4573a97b81/deposit
+Content-Type: application/json
+{
+ "amount": 1000 
+}
+###
+PUT {{CoreBanking.Api_HostAddress}}/api/v1/corebanking/accounts/019e112f-250f-7749-ba43-8c4573a97b81/withdraw
+Content-Type: application/json
+{
+ "amount": 500 
+}
+###
+PUT {{CoreBanking.Api_HostAddress}}/api/v1/corebanking/accounts/019e112f-250f-7749-ba43-8c4573a97b81/transfer
+Content-Type: application/json
+{
+ "amount": 100,
+ "DestinationAccountNumber": "11905278"
+
 }
 ###
