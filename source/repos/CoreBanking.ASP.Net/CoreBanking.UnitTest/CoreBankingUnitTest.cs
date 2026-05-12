@@ -99,7 +99,7 @@ namespace CoreBanking.UnitTest
              
                 Assert.NotNull(addAccount);
          
-                var  resultDeposit = CoreBankingApi.Deposit(_service, addAccount.Id, new DepositionRequest { Amount = depositAmount });
+                var  resultDeposit = CoreBankingApi.Deposit(_service, addAccount.Number, new DepositionRequest { Amount = depositAmount });
                 Assert.NotNull(resultDeposit);
                 Assert.Equal(depositAmount, addAccount.Balance);
                 var  transaction = _context.Transactions.Where(t => t.AccountId == addAccount.Id);

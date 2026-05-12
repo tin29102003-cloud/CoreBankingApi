@@ -20,7 +20,8 @@ Accept: application/json
 POST {{CoreBanking.Api_HostAddress}}/api/v1/corebanking/accounts
 Content-Type: application/json
 {
-  "CustomerId": "b1f8e949-b353-4ec1-b8b5-91f93d9c7157"
+  "CustomerId": "b1f8e949-b353-4ec1-b8b5-91f93d9c7157",
+  "Balance": -20
 }
 ###
 PUT {{CoreBanking.Api_HostAddress}}/api/v1/corebanking/accounts/019e112f-250f-7749-ba43-8c4573a97b81/deposit
@@ -42,4 +43,9 @@ Content-Type: application/json
  "DestinationAccountNumber": "11905278"
 
 }
+###
+
+GET {{CoreBanking.Api_HostAddress}}/api/v1/corebanking/accounts/019e1937-7884-73a7-a987-fa1e51f44e20
+Accept: application/json
+
 ###

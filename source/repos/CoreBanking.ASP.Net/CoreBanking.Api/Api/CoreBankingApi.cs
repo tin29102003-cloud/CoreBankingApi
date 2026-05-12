@@ -1,10 +1,4 @@
-﻿
-
-
-
-
-
-namespace CoreBanking.Api.Api
+﻿namespace CoreBanking.Api.Api
 {
     public static class CoreBankingApi
     {
@@ -13,23 +7,47 @@ namespace CoreBanking.Api.Api
             var  api = builder.NewVersionedApi("CoreBankingApi");
             var  v1 = api.MapGroup("api/v{version:apiVersion}/corebanking").HasApiVersion(1, 0);//version 1.0
             v1.MapGet("/customer", GetCustomers);
+            v1.MapGet("/customer/{id:guid}", GetCustomersById);
             v1.MapPost("/customer", CreateCustomer);
             v1.MapGet("/accounts", GetAccounts);
+            v1.MapGet("/accounts/{id:guid}", GetAccountById);
             v1.MapPost("/accounts", CreateAccount);
-            v1.MapPut("/accounts/{id:guid}/deposit", Deposit);
-            v1.MapPut("/accounts/{id:guid}/withdraw", WithDraw);
-            v1.MapPut("/accounts/{id:guid}/transfer", Transfer);
+            v1.MapPut("/accounts/{Number}/deposit", Deposit);
+            v1.MapPut("/accounts/{Number}/withdraw", WithDraw);
+            v1.MapPut("/accounts/{Number}/transfer", Transfer);
             return builder;
         }
 
-        private static async Task<Results<Ok, BadRequest<string>, InternalServerError<string>>> Transfer(Guid id,
+        private static async Task<Results<Ok<Account>, NotFound<string>>> GetAccountById([AsParameters] CoreBankingService service, Guid id)
+        {
+            var account = await service.DbContext.Accounts.FirstOrDefaultAsync(c => c.Id == id);
+            if (account == null)
+            {
+                service.Logger.LogError("Account with id {accountId} not found", id);
+                return TypedResults.NotFound($"Account with id {id} not found");
+            }
+            return TypedResults.Ok(account);
+        }
+
+        private static async Task<Results<Ok<Customer>, NotFound<string>>> GetCustomersById([AsParameters] CoreBankingService service, Guid id)
+        {
+            var customer = await service.DbContext.Customers.FirstOrDefaultAsync(c => c.Id == id);
+            if(customer == null)
+            {
+                service.Logger.LogError("Customer with id {CustomerId} not found", id);
+                return TypedResults.NotFound($"Customer with id {id} not found");
+            }
+            return TypedResults.Ok(customer);
+        }
+
+        private static async Task<Results<Ok, BadRequest<string>, InternalServerError<string>>> Transfer(string Number,
                 [AsParameters] CoreBankingService service,
                 TransferRequest transfer)
         {
-            if (id == Guid.Empty)
+            if (string.IsNullOrEmpty(Number))
             {
-                service.Logger.LogError("Account id is required");
-                return TypedResults.BadRequest("Account id is required");
+                service.Logger.LogError("Account Number is required");
+                return TypedResults.BadRequest("Account number is required");
             }
             if (string.IsNullOrEmpty(transfer.DestinationAccountNumber))
             {
@@ -41,15 +59,15 @@ namespace CoreBanking.Api.Api
                 service.Logger.LogError("Amount must be greater than 0");
                 return TypedResults.BadRequest("Amount must be greater than 0");
             }
-            var account = await service.DbContext.Accounts.FindAsync(id);
+            var account = await service.DbContext.Accounts.FirstOrDefaultAsync(a => a.Number == Number);
             if (account == null)
             {
-                service.Logger.LogError("Account with id {AccountId} not found", id);
-                return TypedResults.BadRequest($"Account with id {id} not found");
+                service.Logger.LogError("Account with Number {AccountId} not found", Number);
+                return TypedResults.BadRequest($"Account with Number {Number} not found");
             }
             if (account.Balance < transfer.Amount)
             {
-                service.Logger.LogError("Insufficient balance in account {AccountId}", id);
+                service.Logger.LogError("Insufficient balance in account {AccountId}", Number);
                 return TypedResults.BadRequest("Insufficient balance");
             }
             var destinationAccount = await service.DbContext.Accounts.FirstOrDefaultAsync(a => a.Number == transfer.DestinationAccountNumber);
@@ -60,7 +78,7 @@ namespace CoreBanking.Api.Api
             }
             if(destinationAccount.Number == account.Number)
             {
-                service.Logger.LogError("Cannot transfer to the same account {AccountId}", id);
+                service.Logger.LogError("Cannot transfer to the same account {AccountId}", Number);
                 return TypedResults.BadRequest("Cannot transfer to the same account");
             }
             account.Balance -= transfer.Amount;
@@ -97,28 +115,28 @@ namespace CoreBanking.Api.Api
         }
         public static async Task<Results<Ok<Account>, BadRequest<string>, InternalServerError<string>>> WithDraw(
               [AsParameters] CoreBankingService service,
-            Guid id, WithdrawRequest withdraw)
+            string Number, WithdrawRequest withdraw)
         {
-            if (id == Guid.Empty)
+            if (string.IsNullOrEmpty(Number))
             {
-                service.Logger.LogError("Account id is required");
-                return TypedResults.BadRequest("Account id is required");
+                service.Logger.LogError("Account Number is required");
+                return TypedResults.BadRequest("Account Number is required");
             }
             if (withdraw.Amount <= 0)
             {
                 service.Logger.LogError("Amount must be greater than 0");
                 return TypedResults.BadRequest("Amount must be greater than 0");
             }
-            var account = await service.DbContext.Accounts.FindAsync(id);
+            var account = await service.DbContext.Accounts.FirstOrDefaultAsync(a => a.Number == Number);
             if (account == null)
             {
-                service.Logger.LogError("Account with id {AccountId} not found", id);
-                return TypedResults.BadRequest($"Account with id {id} not found");
+                service.Logger.LogError("Account with Number {AccountId} not found", Number);
+                return TypedResults.BadRequest($"Account with number {Number} not found");
             }
             account.Balance -= withdraw.Amount;
             if(account.Balance < 0)
             {
-                service.Logger.LogError("Insufficient balance in account {AccountId}", id);
+                service.Logger.LogError("Insufficient balance in account {AccountId}", Number);
                 return TypedResults.BadRequest("Insufficient balance");
             }
             try
@@ -133,7 +151,7 @@ namespace CoreBanking.Api.Api
                 });
                 //service.DbContext.Accounts.Update(account);
                 await service.DbContext.SaveChangesAsync();
-                service.Logger.LogInformation("Withdraw {Amount} to account {AccountId}", withdraw.Amount, account.Id);
+                service.Logger.LogInformation("Withdraw {Amount} to account {AccountId}", withdraw.Amount, account.Number);
                 return TypedResults.Ok(account);
             }
             catch (Exception ex)
@@ -146,23 +164,23 @@ namespace CoreBanking.Api.Api
 
         internal static async Task<Results<Ok<Account>, BadRequest<string>, InternalServerError<string>>> Deposit(
               [AsParameters] CoreBankingService service,
-            Guid id, DepositionRequest deposition)
+            string Number, DepositionRequest deposition)
         {
-            if(id == Guid.Empty)
+            if(string.IsNullOrEmpty(Number))
             {
-                service.Logger.LogError("Account id is required");
-                return TypedResults.BadRequest("Account id is required");
+                service.Logger.LogError("Account Number is required");
+                return TypedResults.BadRequest("Account Number is required");
             }
             if(deposition.Amount <= 0)
             {
                 service.Logger.LogError("Amount must be greater than 0");
                 return TypedResults.BadRequest("Amount must be greater than 0");
             }
-            var account = await service.DbContext.Accounts.FindAsync(id);   
+            var account = await service.DbContext.Accounts.FirstOrDefaultAsync(a => a.Number == Number);   
             if(account == null)
             {
-                service.Logger.LogError("Account with id {AccountId} not found", id);
-                return TypedResults.BadRequest($"Account with id {id} not found");
+                service.Logger.LogError("Account with Number {AccountId} not found", Number);
+                return TypedResults.BadRequest($"Account with Number {Number} not found");
             }
             account.Balance += deposition.Amount;
             try {
@@ -268,7 +286,10 @@ namespace CoreBanking.Api.Api
                 return TypedResults.BadRequest($"Customer with id {account.CustomerId} not found");
             }
             account.Id = Guid.CreateVersion7();
-            account.Balance = 0;
+            if(account.Balance < 0)
+            {
+                account.Balance = 0;
+            }
             account.Number = await GenerateAccountNumber(service);
             service.DbContext.Accounts.Add(account);
             await service.DbContext.SaveChangesAsync(); 
